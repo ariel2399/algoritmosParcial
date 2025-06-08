@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36127.28 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AlgoritmosParcial", "AlgoritmosParcial\AlgoritmosParcial.csproj", "{AF30285A-EDBB-4508-BFD1-3F22594D1B6E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AF30285A-EDBB-4508-BFD1-3F22594D1B6E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF30285A-EDBB-4508-BFD1-3F22594D1B6E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF30285A-EDBB-4508-BFD1-3F22594D1B6E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF30285A-EDBB-4508-BFD1-3F22594D1B6E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B9908E1F-A87D-4B35-AE7B-2E66EDA7C0EB}
+	EndGlobalSection
+EndGlobal
