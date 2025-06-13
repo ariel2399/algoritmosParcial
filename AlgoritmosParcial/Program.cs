@@ -4,13 +4,15 @@
     {
         static void Main(string[] args)
         {
-            //consola
-            Consola consola = new Consola();
+            // Inicialización de empleados y variables necesarios
+            int maxProductos = 23; // Definir un máximo de productos en el inventario
+            int maxProductosCarrito = 33;
+            int maxProductosDistintos = 11;
             //Empleados
             Cajero cajero = new Cajero();
             Vendedor vendedor = new Vendedor();
             Repositor repositor = new Repositor();
-            Inventario inventario = new Inventario();
+            Inventario inventario = new Inventario(maxProductos);
 
             bool funcionando = true;
 
@@ -21,31 +23,21 @@
                                   "\n¿Qué querés hacer hoy:" +
                                   "\n1 - Ingresar como Repositor" +
                                   "\n2 - Ingresar como Vendedor" +
-                                  "\n3 - Ingresar como Cajero" +
-                                  "\n4 - Salir");
+                                  "\n3 - Ingresar como Cajero");
 
-                int menu = consola.PedirNumeroPositivo(1, 4);
+                int menuSeleccionado = Consola.PedirNumeroPositivo(1, 3);
 
-                switch (menu)
+                switch (menuSeleccionado)
                 {
-                    case 1:
+                    case (int)MenuTipoEmpleado.Repositor:
                         Console.Clear();
-                        Console.WriteLine("Acá debería mostrar el menú del repositor");
-                        MenuRepositor(repositor, inventario, consola);
+                        MenuRepositor(repositor, inventario);
                         break;
-                    case 2:
+                    case (int)MenuTipoEmpleado.Vendedor:
                         Console.Clear();
-                        Console.WriteLine("Acá debería mostrar el menú del vendedor");
                         break;
-                    case 3:
+                    case (int)MenuTipoEmpleado.Cajero:
                         Console.Clear();
-                        Console.WriteLine("Acá debería mostrar el menú del cajero");
-                        break;
-                    case 4:
-                        Console.Clear();
-                        Console.WriteLine("Saliendo del sistema");
-                        funcionando = false;
-                        Console.ReadKey();
                         break;
                 }
 
@@ -55,7 +47,7 @@
             Console.ReadKey();
         }
 
-        public static void MenuRepositor(Repositor repositor, Inventario inventario, Consola consola)
+        public static void MenuRepositor(Repositor repositor, Inventario inventario)
         {
             bool funcionandorepo = true;
 
@@ -68,18 +60,20 @@
                                   "\n2 - Quitar" +
                                   "\n3 - Volver al menú principal");
 
-                int menurepo = consola.PedirNumeroPositivo(1, 3);
+                int menurepo = Consola.PedirNumeroPositivo(1, 3);
 
                 switch (menurepo)
                 {
                     case 1:
                         Console.WriteLine("Llamar al método 'agregar' del Repositor");
-                        int cantidad = consola.PedirNumeroPositivo(1, 100); // Ejemplo de cantidad a agregar
+                        int cantidad = Consola.PedirNumeroPositivo(1, 999999999);
                         repositor.Agregar(inventario, cantidad);
                         Console.ReadKey();
                         break;
                     case 2:
                         Console.WriteLine("Llamar al método 'quitar' del Repositor");
+                        int cantidad2 = Consola.PedirNumeroPositivo(1, 999999999);
+                        repositor.Quitar(inventario, cantidad2);
                         Console.ReadKey();
                         break;
                     case 3:
@@ -89,7 +83,7 @@
             } while (funcionandorepo);
         }
 
-        static void MenuVendedor(Vendedor vendedor, Inventario inventario, Consola consola)
+        static void MenuVendedor(Vendedor vendedor, Inventario inventario)
         {
             bool funcionandovender = true;
 
@@ -102,16 +96,18 @@
                                   "\n2 - Cotizar" +
                                   "\n3 - Volver al menú principal");
 
-                int menuvender = consola.PedirNumeroPositivo(1, 3);
+                int menuvender = Consola.PedirNumeroPositivo(1, 3);
 
                 switch (menuvender)
                 {
                     case 1:
                         Console.WriteLine("Llamar al método 'vender' del Vendedor");
+                        vendedor.Vender(1, inventario); // Ejemplo de uso del método Cotizar
                         Console.ReadKey();
                         break;
                     case 2:
                         Console.WriteLine("Llamar al método 'cotizar' del Vendedor");
+                        vendedor.Cotizar(1, inventario); // Ejemplo de uso del método Cotizar
                         Console.ReadKey();
                         break;
                     case 3:
@@ -121,7 +117,7 @@
             } while (funcionandovender);
         }
 
-        static void MenuCajero(Cajero cajero, Inventario inventario, Consola consola)
+        static void MenuCajero(Cajero cajero, Inventario inventario, Carrito carrito)
         {
             bool funcionandocajero = true;
 
@@ -134,20 +130,23 @@
                                   "\n3 - Cerrar caja / Ver resumen del día" +
                                   "\n4 - Volver al menú principal");
 
-                int opcion = consola.PedirNumeroPositivo(1, 4);
+                int opcion = Consola.PedirNumeroPositivo(1, 4);
 
                 switch (opcion)
                 {
                     case 1:
                         Console.WriteLine("Llamar a método para ver productos pendientes de cobro");
+                        //cajero.
                         Console.ReadKey();
                         break;
                     case 2:
                         Console.WriteLine("Llamar a método para cobrar venta");
+                        cajero.Cobrar(carrito); // Ejemplo de uso del método Cobrar
                         Console.ReadKey();
                         break;
                     case 3:
                         Console.WriteLine("Llamar a método para cerrar caja / ver resumen");
+                        cajero.CierreDelDia(); // Ejemplo de uso del método Cierre
                         Console.ReadKey();
                         break;
                     case 4:
@@ -157,10 +156,15 @@
             } while (funcionandocajero);
         }
     }
-
-    public class Consola
+    public enum MenuTipoEmpleado
     {
-        public int PedirNumeroPositivo(int min, int max)
+        Repositor = 1,
+        Vendedor,
+        Cajero
+    }
+    public static class Consola
+    {
+        public static int PedirNumeroPositivo(int min, int max)
         {
             int numero = -1;
 
@@ -186,7 +190,17 @@
     // Gestión  Producto
     public class Inventario
     {
-        public RegistroInventario[] registros { get; set; }
+        private int MaxProductos { get; set; }
+        private Producto[] productos { get; set; }
+        private RegistroInventario[] registros { get; set; }
+        public Inventario(int maxProductos)
+        {
+            MaxProductos = maxProductos;
+        }
+        public void AgregarProducto(Producto producto, RegistroInventario registro)
+        {
+          
+        }
     }
     public class RegistroInventario
     {
@@ -207,20 +221,43 @@
     }
     public class Carrito
     {
-        private int[] Productos { get; set; }
+        private int MaxProductos { get; set; }
+        private int ProductosDistintos { get; set; }
+        private int[,] ProductoCantidad { get; set; }
+    
         public bool Agregar(int productoId, int cantidad)
         {
-            return true;
+            bool resp = false;
+            for (int i = 0; i < MaxProductos; i++)
+            {
+                if (ProductoCantidad[i, 0] == 0)
+                {
+                    ProductoCantidad[i, 0] = productoId;
+                    ProductoCantidad[i, 1] = cantidad;
+                    resp = true;
+                }
+            }
+            return resp;
         }
         public bool Quitar(int productoId, int cantidad)
         {
-            return true;
+            bool resp = false;
+            for (int i = 0; i < MaxProductos; i++)
+            {
+                if (i == productoId)
+                {
+                    ProductoCantidad[i, 0] = 0;
+                    ProductoCantidad[i, 1] = 0;
+                    resp = true;
+                }
+            }
+            return resp;
         }
     }
     public class Venta
     {
         public Carrito Carrito { get; set; }
-        public bool EstaCobrado { get; set; }
+        public bool EstaFinalizado { get; set; }
         public int Cobrar()
         {
             return 1;
@@ -236,15 +273,9 @@
     {
     }
 
-    public class Empleado
+    public class Empleado// dueño?
     {
-        public int NroLegajo { get; set; }
-        public string Nombre { get; set; }
-        public string Apellido
-        {
-            get;
-        }
-
+        //definición de propiedades comunes para todos los empleados
     }
 
     public class Repositor : Empleado
@@ -268,10 +299,7 @@
         public SistemaContable SistemaContable { get; set; }
         public Validador Validador { get; set; }
         public void Cobrar(Carrito carrito) { }
-        public void Cierre() { }
-        public void Resumen() { }
-        public void ListaSabana() { }
-        public void CierreSistema() { }
+        public void CierreDelDia() { }
     }
     public abstract class Validador
     {
