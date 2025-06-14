@@ -80,9 +80,7 @@
                         int idProducto = Herramienta.PedirNumeroPositivo(1, maxProductos);
                         Console.WriteLine("Ingrese la cantidad de productos a agregar (1 a 999999999):");
                         int cantidad = Herramienta.PedirNumeroPositivo(1, 9999);
-                        Console.WriteLine("Ingrese el precio del producto (entre " + precioMinimo + " y " + precioMaximo + "):");
-                        int precio = Herramienta.PedirNumeroPositivo(precioMinimo, precioMaximo);
-                        repositor.AgregarProducto(inventario, idProducto, cantidad, precio);
+                        repositor.AgregarProducto(inventario, idProducto, cantidad);
                         Console.ReadKey();
                         break;
                     case 2:
@@ -120,7 +118,7 @@
                     case 1:
                         Console.WriteLine("Ingrese el ID del producto )");
                         int idProducto = Herramienta.PedirNumeroPositivo(1, 100);
-                        vendedor.Vender(idProducto,ventaClientes, inventario);
+                        vendedor.Vender(idProducto,ventaClientes, inventario, 100);
                         Console.ReadKey();
                         break;
                     case 2:
@@ -196,6 +194,9 @@
     // Gestión  Producto
     public class Inventario
     {
+        /// <summary>
+        /// El mas importante revisar logica  (private RegistroInventario[] registros { get; set; })
+        /// </summary>
         private int MaxProductos { get; set; }
         private RegistroInventario[] registros { get; set; }
         public Inventario(int maxProductos)
@@ -203,12 +204,12 @@
             MaxProductos = maxProductos;
             registros = new RegistroInventario[maxProductos];
         }
-        public void AgregarProductoStockPrecio(int idProducto, int cantidad, int precio)
+        public void AgregarProductoStockPrecio(int idProducto, int cantidad)//para el repositor solo stock
         {
             var nuevoRegistro = new RegistroInventario
             {
                 Stock = cantidad,
-                Precio = precio
+                Precio = 0
             };
             if (registros[idProducto - 1] is null)
             {
@@ -221,6 +222,9 @@
                 registros[idProducto - 1] = registro;
             }  
         }
+        public void AgregarProductoPrecio(int idProducto, int precio)
+        { 
+        }
         public void QuitarProductoStock(int idProducto, int cantidad)
         {
             var registro = registros[idProducto - 1];
@@ -230,14 +234,27 @@
                 registros[idProducto - 1] = registro;
             }
         }
+        public int PedirPrecioProducto(int idProducto)
+        {
+            var registro = registros[idProducto - 1];
+            return registro.Precio;
+        }
+        public int PedirCantidadProducto(int idProducto)
+        {
+            var registro = registros[idProducto - 1];
+            return registro.Stock;
+        }  
     }
     public class RegistroInventario
     {
         public int Stock { get; set; }
-        public double Precio { get; set; }
+        public int Precio { get; set; }
     }
     public class Carrito
     {
+        /// <summary>
+        /// Completar segun Compartimentos la logica-
+        /// </summary>
         private int MaxProductos { get; set; } //33
         private int ProductosDistintos { get; set; }//11
         private int[,] Compartimentos { get; set; }
@@ -300,13 +317,13 @@
     }
     public abstract class Dueño
     {
-        public abstract void AgregarProducto(Inventario iventario, int idProducto, int cantidad, int precio);
+        public abstract void AgregarProducto(Inventario iventario, int idProducto, int cantidad);
         public abstract void QuitarProducto(Inventario iventario, int idProducto, int cantidad);
     }
     public class Repositor : Dueño
     {
         public ValidadorRepositor Validador { get; set; }
-        public override void AgregarProducto(Inventario iventario, int idProducto, int cantidad, int precio) 
+        public override void AgregarProducto(Inventario iventario, int idProducto, int cantidad) 
         {
             //if (!Validador.ValidarProducto())
             //{
@@ -324,7 +341,7 @@
             //    return false;
             //}
 
-            iventario.AgregarProductoStockPrecio(idProducto, cantidad, precio);
+            iventario.AgregarProductoStockPrecio(idProducto, cantidad);
             return ;
         }
         public override void QuitarProducto(Inventario iventario, int idProducto, int cantidad)
@@ -350,13 +367,24 @@
     public class Vendedor : Repositor
     {
         public Validador Validador { get; set; }
-        public void Vender(int productoId, Carrito[] ventaClientes, Inventario? Iventario)
-        { 
+        public void Vender(int productoId, Carrito[] carritos, Inventario? Iventario, int cantidad)
+        {
             //completas el carrito con el producto id, antes tomando el precio y cantidad de inventario. que sea valido
+           Carrito changuito = new Carrito();
+            changuito.Agregar(productoId, cantidad);
+            for (int i = 0; i < carritos.Length; i++)
+            {
+                if (carritos[i] == null) //hay lugar
+                {
+                    carritos[i] = changuito;
+                    return;
+                }
+            }
+
         }
         public void RegistrarPrecio(int productoId, Inventario? Iventario, int precio) 
         {
-            //buscas en tu inventario el producto con el productoId y agregas precio. Consultar antes si tiene precio no modificar nada.
+            Iventario.AgregarProductoPrecio(productoId, precio);
         }
     }
     public class Cajero : Vendedor
@@ -367,9 +395,12 @@
             int totalConDescuento = 1000;
             //dame el ultimo carrito para que tengas sin cobrar.
             Carrito changuito = null;
+            //datos importantes para los ifs de descuentos
             int totalSinDescuento = 0;
+
             int totalCantidadProductos = 0;
             int totalDistintos = 0;
+            //
 
             for (int i = 0; i < carrito.Length; i++)
             {
@@ -390,26 +421,26 @@
             //cobro este carrito con los descuentos
             //segun los campos etc. ejemplo:
             // 1. Ajustes por monto
-            //if (subtotal < 5000) montoFinal *= 1.15;
-            //else if (subtotal < 10000) montoFinal *= 1.12;
-            //else if (subtotal < 15000) montoFinal *= 1.09;
-            //else if (subtotal >= 35000) montoFinal *= 0.85;
-            //else if (subtotal >= 25000) montoFinal *= 0.89;
-            //else if (subtotal >= 15000) montoFinal *= 0.925;
+            //if (subtotal < 5000) totalConDescuento *= 1.15;
+            //else if (totalSinDescuento < 10000) totalConDescuento *= 1.12;
+            //else if (totalSinDescuento < 15000) totalConDescuento *= 1.09;
+            //else if (totalSinDescuento >= 35000) totalConDescuento *= 0.85;
+            //else if (totalSinDescuento >= 25000) totalConDescuento *= 0.89;
+            //else if (totalSinDescuento >= 15000) totalConDescuento *= 0.925;
             //// 2. Ajustes por unidades
-            //if (totalUnidades < 5) montoFinal *= 1.10;
-            //else if (totalUnidades < 10) montoFinal *= 1.075;
-            //else if (totalUnidades < 15) montoFinal *= 1.05;
-            //else if (totalUnidades >= 25) montoFinal *= 0.95;
-            //else if (totalUnidades >= 20) montoFinal *= 0.964;
-            //else if (totalUnidades >= 15) montoFinal *= 0.976;
+            //if (totalCantidadProductos < 5) totalConDescuento *= 1.10;
+            //else if (totalCantidadProductos < 10) totalConDescuento *= 1.075;
+            //else if (totalCantidadProductos < 15) totalConDescuento *= 1.05;
+            //else if (totalCantidadProductos >= 25) totalConDescuento *= 0.95;
+            //else if (totalCantidadProductos >= 20) totalConDescuento *= 0.964;
+            //else if (totalCantidadProductos >= 15) totalConDescuento *= 0.976;
             //// 3. Ajustes por cantidad de productos distintos
-            //if (totalProductosDistintos < 2) montoFinal *= 1.15;
-            //else if (totalProductosDistintos < 4) montoFinal *= 1.10;
-            //else if (totalProductosDistintos < 6) montoFinal *= 1.05;
-            //else if (totalProductosDistintos >= 8) montoFinal *= 0.85;
-            //else if (totalProductosDistintos >= 7) montoFinal *= 0.90;
-            //else if (totalProductosDistintos >= 6) montoFinal *= 0.95;
+            //if (totalDistintos < 2) totalConDescuento *= 1.15;
+            //else if (totalDistintos < 4) totalConDescuento *= 1.10;
+            //else if (totalDistintos < 6) totalConDescuento *= 1.05;
+            //else if (totalDistintos >= 8) totalConDescuento *= 0.85;
+            //else if (totalDistintos >= 7) totalConDescuento *= 0.90;
+            //else if (totalDistintos >= 6) totalConDescuento *= 0.95;
 
             //total con descuento
             datosVenta.TotalCobrado = datosVenta.TotalCobrado + totalConDescuento;
