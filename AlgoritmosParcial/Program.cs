@@ -325,7 +325,7 @@
             //}
 
             iventario.AgregarProductoStockPrecio(idProducto, cantidad, precio);
-            return true;
+            return ;
         }
         public override void QuitarProducto(Inventario iventario, int idProducto, int cantidad)
         {    //if (!Validador.ValidarProducto())
@@ -344,7 +344,7 @@
             //    return false;
             //}
             iventario.QuitarProductoStock(idProducto, cantidad);
-            return true;
+            return ;
         }
     }
     public class Vendedor : Repositor
