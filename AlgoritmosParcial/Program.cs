@@ -11,6 +11,7 @@
             int precioMaximo = 2345;
 
             // Inicialización de objetos necesarios
+            DatosVenta datosVenta = new DatosVenta();
             bool funcionando = false;
             Inventario inventario = new Inventario(maxProductos);
             //carritos en venta que estan en cola para cobrarse.
@@ -117,7 +118,7 @@
                 switch (menuvender)
                 {
                     case 1:
-                        Console.WriteLine("Ingrese el ID del producto )";
+                        Console.WriteLine("Ingrese el ID del producto )");
                         int idProducto = Herramienta.PedirNumeroPositivo(1, 100);
                         vendedor.Vender(idProducto,ventaClientes, inventario);
                         Console.ReadKey();
@@ -151,12 +152,12 @@
                 {
                     case 1:
                         Console.WriteLine("Vamos a cobrar los carritos segun el orden de llegada. Empezamos con el primero que este sin cobrar.");
-                        cajero.Cobrar(carritos); 
+                        cajero.Cobrar(carritos, inventario); 
                         Console.ReadKey();
                         break;
                     case 2:
                         Console.WriteLine("Llamar a método para cerrar caja / ver resumen");
-                        cajero.CierreDelDia(carritos, funcionandoPrincipal); // Ejemplo de uso del método Cierre
+                        cajero.CierreDelDia(carritos,ref funcionandoPrincipal); // Ejemplo de uso del método Cierre
                         Console.ReadKey();
                         break;
                     case 3:
@@ -293,6 +294,13 @@
     public struct DatosVenta
     {
         public int TotalSinDescuentos { get; set; }
+        public int TotalCobrado { get; set; }
+        public int CantidadVentas { get; set; }
+        public int CantidadUnidades { get; set; }
+        public decimal PromedioUnidadesVendidas { get; set; }
+        public decimal TicketPromedio { get; set; }
+        public int DiferenciaPorcentualConDescuento { get; set; }
+
 
     }
     public class Empleado// dueño?
@@ -415,6 +423,7 @@
             //○ Cantidad de unidades vendidas. 
             //○ Promedio de Unidades por Ventas y Cobrado por ventas.
             //○ Diferencia porcentual entre lo cobrado y lo vendido sin descuento/ aumento.
+            //=> (1 - (sumatoria de ventas con descuento / sumatoria de ventas sin descuento)) * 100
 
 
         }
