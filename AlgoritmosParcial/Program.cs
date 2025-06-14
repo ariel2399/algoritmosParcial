@@ -11,7 +11,7 @@
             int precioMaximo = 2345;
 
             // Inicialización de objetos necesarios
-            MenuPrincipal menuPrincipal = new MenuPrincipal();
+            bool funcionando = false;
             Inventario inventario = new Inventario(maxProductos);
             VentaCliente[] ventaClientes = new VentaCliente[99999999]; ; 
             //Empleados
@@ -19,11 +19,16 @@
             Vendedor vendedor = new Vendedor();
             Repositor repositor = new Repositor();
 
-            menuPrincipal.Funcionando = true;
+            funcionando = true;
 
             do
             {
-                menuPrincipal.MostrarMenuPrincipal();
+                Console.Clear();
+                Console.WriteLine("Bienvenido al sistema de gestión de empleados y productos.");
+                Console.WriteLine("Seleccione una opción:");
+                Console.WriteLine("1. Ingresar como Repositor");
+                Console.WriteLine("2. Ingresar como Vendedor");
+                Console.WriteLine("3. Ingresar como Cajero");
 
                 int menuSeleccionado = Consola.PedirNumeroPositivo(1, 3);
 
@@ -39,11 +44,11 @@
                         break;
                     case (int)MenuTipoEmpleado.Cajero:
                         Console.Clear();
-                        MenuCajero(cajero, inventario, ventaClientes);
+                        MenuCajero(cajero, inventario, ventaClientes, ref funcionando);
                         break;
                 }
 
-            } while (menuPrincipal.Funcionando);
+            } while (funcionando);
 
             Console.WriteLine("Presione cualquier tecla para salir");
             Console.ReadKey();
@@ -125,7 +130,7 @@
                 }
             } while (funcionandovender);
         }
-        static void MenuCajero(Cajero cajero, Inventario inventario, VentaCliente[] ventaClientes)
+        static void MenuCajero(Cajero cajero, Inventario inventario, VentaCliente[] ventaClientes, ref bool funcionandoPrincipal)
         {
             bool funcionandocajero = true;
 
@@ -169,12 +174,7 @@
         public bool Funcionando { get; set; } = false;
         public void MostrarMenuPrincipal()
         {
-            Console.Clear();
-            Console.WriteLine("Bienvenido al sistema de gestión de empleados y productos.");
-            Console.WriteLine("Seleccione una opción:");
-            Console.WriteLine("1. Ingresar como Repositor");
-            Console.WriteLine("2. Ingresar como Vendedor");
-            Console.WriteLine("3. Ingresar como Cajero");
+      
         }
     }
     public enum MenuTipoEmpleado
