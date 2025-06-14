@@ -6,24 +6,24 @@
         {
             // Inicialización de empleados y variables necesarios
             int maxProductos = 23; // Definir un máximo de productos en el inventario
-            int maxProductosCarrito = 33;
-            int maxProductosDistintos = 11;
+
+            int precioMinimo = 321; // Definir un precio mínimo para los productos
+            int precioMaximo = 2345;
+
+            // Inicialización de objetos necesarios
+            MenuPrincipal menuPrincipal = new MenuPrincipal();
+            Inventario inventario = new Inventario(maxProductos);
+            VentaCliente[] ventaClientes = new VentaCliente[99999999]; ; 
             //Empleados
             Cajero cajero = new Cajero();
             Vendedor vendedor = new Vendedor();
             Repositor repositor = new Repositor();
-            Inventario inventario = new Inventario(maxProductos);
 
-            bool funcionando = true;
+            menuPrincipal.Funcionando = true;
 
             do
             {
-                Console.Clear();
-                Console.WriteLine("Bienvenido al sistema" +
-                                  "\n¿Qué querés hacer hoy:" +
-                                  "\n1 - Ingresar como Repositor" +
-                                  "\n2 - Ingresar como Vendedor" +
-                                  "\n3 - Ingresar como Cajero");
+                menuPrincipal.MostrarMenuPrincipal();
 
                 int menuSeleccionado = Consola.PedirNumeroPositivo(1, 3);
 
@@ -31,23 +31,25 @@
                 {
                     case (int)MenuTipoEmpleado.Repositor:
                         Console.Clear();
-                        MenuRepositor(repositor, inventario);
+                        MenuRepositor(repositor, inventario, maxProductos, precioMinimo, precioMaximo);
                         break;
                     case (int)MenuTipoEmpleado.Vendedor:
                         Console.Clear();
+                        MenuVendedor(vendedor, inventario);
                         break;
                     case (int)MenuTipoEmpleado.Cajero:
                         Console.Clear();
+                        MenuCajero(cajero, inventario, ventaClientes);
                         break;
                 }
 
-            } while (funcionando);
+            } while (menuPrincipal.Funcionando);
 
             Console.WriteLine("Presione cualquier tecla para salir");
             Console.ReadKey();
         }
-
-        public static void MenuRepositor(Repositor repositor, Inventario inventario)
+        public static void MenuRepositor(Repositor repositor, Inventario inventario, 
+            int maxProductos, int precioMinimo, int precioMaximo)
         {
             bool funcionandorepo = true;
 
@@ -55,9 +57,9 @@
             {
                 Console.Clear();
                 Console.WriteLine("Bienvenido al sistema del Repositor" +
-                                  "\n¿Qué querés hacer hoy:" +
-                                  "\n1 - Agregar" +
-                                  "\n2 - Quitar" +
+                                  "\n¿Qué querés hacer:" +
+                                  "\n1 - Agregar productos" +
+                                  "\n2 - Quitar productos" +
                                   "\n3 - Volver al menú principal");
 
                 int menurepo = Consola.PedirNumeroPositivo(1, 3);
@@ -65,15 +67,23 @@
                 switch (menurepo)
                 {
                     case 1:
-                        Console.WriteLine("Llamar al método 'agregar' del Repositor");
-                        int cantidad = Consola.PedirNumeroPositivo(1, 999999999);
-                        repositor.Agregar(inventario, cantidad);
+                        Console.Clear();
+                        Console.WriteLine("Ingrese el ID del producto (1 a " + maxProductos + "):");
+                        int idProducto = Consola.PedirNumeroPositivo(1, maxProductos);
+                        Console.WriteLine("Ingrese la cantidad de productos a agregar (1 a 999999999):");
+                        int cantidad = Consola.PedirNumeroPositivo(1, 9999);
+                        Console.WriteLine("Ingrese el precio del producto (entre " + precioMinimo + " y " + precioMaximo + "):");
+                        int precio = Consola.PedirNumeroPositivo(precioMinimo, precioMaximo);
+                        repositor.AgregarProducto(inventario, idProducto, cantidad, precio);
                         Console.ReadKey();
                         break;
                     case 2:
-                        Console.WriteLine("Llamar al método 'quitar' del Repositor");
-                        int cantidad2 = Consola.PedirNumeroPositivo(1, 999999999);
-                        repositor.Quitar(inventario, cantidad2);
+                        Console.Clear();
+                        Console.WriteLine("Ingrese el ID del producto (1 a " + maxProductos + "):");
+                        int idProducto2 = Consola.PedirNumeroPositivo(1, maxProductos);
+                        Console.WriteLine("Ingrese la cantidad de productos a agregar (1 a 999999999):");
+                        int cantidad2 = Consola.PedirNumeroPositivo(1, 9999);
+                        repositor.QuitarProducto(inventario, idProducto2, cantidad2);
                         Console.ReadKey();
                         break;
                     case 3:
@@ -82,7 +92,6 @@
                 }
             } while (funcionandorepo);
         }
-
         static void MenuVendedor(Vendedor vendedor, Inventario inventario)
         {
             bool funcionandovender = true;
@@ -116,8 +125,7 @@
                 }
             } while (funcionandovender);
         }
-
-        static void MenuCajero(Cajero cajero, Inventario inventario, Carrito carrito)
+        static void MenuCajero(Cajero cajero, Inventario inventario, VentaCliente[] ventaClientes)
         {
             bool funcionandocajero = true;
 
@@ -141,7 +149,7 @@
                         break;
                     case 2:
                         Console.WriteLine("Llamar a método para cobrar venta");
-                        cajero.Cobrar(carrito); // Ejemplo de uso del método Cobrar
+                        cajero.Cobrar(null); // Ejemplo de uso del método Cobrar
                         Console.ReadKey();
                         break;
                     case 3:
@@ -154,6 +162,19 @@
                         break;
                 }
             } while (funcionandocajero);
+        }
+    }
+    public class MenuPrincipal
+    {
+        public bool Funcionando { get; set; } = false;
+        public void MostrarMenuPrincipal()
+        {
+            Console.Clear();
+            Console.WriteLine("Bienvenido al sistema de gestión de empleados y productos.");
+            Console.WriteLine("Seleccione una opción:");
+            Console.WriteLine("1. Ingresar como Repositor");
+            Console.WriteLine("2. Ingresar como Vendedor");
+            Console.WriteLine("3. Ingresar como Cajero");
         }
     }
     public enum MenuTipoEmpleado
@@ -191,33 +212,44 @@
     public class Inventario
     {
         private int MaxProductos { get; set; }
-        private Producto[] productos { get; set; }
         private RegistroInventario[] registros { get; set; }
         public Inventario(int maxProductos)
         {
             MaxProductos = maxProductos;
+            registros = new RegistroInventario[maxProductos];
         }
-        public void AgregarProducto(Producto producto, RegistroInventario registro)
+        public void AgregarProductoStockPrecio(int idProducto, int cantidad, int precio)
         {
-          
+            var nuevoRegistro = new RegistroInventario
+            {
+                Stock = cantidad,
+                Precio = precio
+            };
+            if (registros[idProducto - 1] is null)
+            {
+                registros[idProducto - 1] = nuevoRegistro;
+            }
+            else
+            {
+                var registro = registros[idProducto - 1];
+                registro.Stock = registro.Stock + cantidad;
+                registros[idProducto - 1] = registro;
+            }  
+        }
+        public void QuitarProductoStock(int idProducto, int cantidad)
+        {
+            var registro = registros[idProducto - 1];
+            if (registro is not null)
+            {
+                registro.Stock = registro.Stock + cantidad;
+                registros[idProducto - 1] = registro;
+            }
         }
     }
     public class RegistroInventario
     {
-        public int ProductoId { get; set; }
         public int Stock { get; set; }
         public double Precio { get; set; }
-    }
-    public class Producto
-    {
-        private int Id { get; }
-        private string Nombre { get; set; }
-
-        public Producto(int id, string nombre)
-        {
-            Id = id;
-            Nombre = nombre;
-        }
     }
     public class Carrito
     {
@@ -253,8 +285,44 @@
             }
             return resp;
         }
+        public int CantidadProductos()
+        {
+            int cantidad = 0;
+            for (int i = 0; i < MaxProductos; i++)
+            {
+                if (ProductoCantidad[i, 0] != 0)
+                {
+                    cantidad++;
+                }
+            }
+            return cantidad;
+        }
+        public int CantidadProductosDistintos()
+        {
+            int cantidad = 0;
+            for (int i = 0; i < MaxProductos; i++)
+            {
+                if (ProductoCantidad[i, 0] != 0)
+                {
+                    cantidad++;
+                }
+            }
+            return cantidad;
+        }
+        public int TotalCarrito()
+        {
+            int total = 0;
+            for (int i = 0; i < MaxProductos; i++)
+            {
+                if (ProductoCantidad[i, 0] != 0)
+                {
+                    total += ProductoCantidad[i, 1]; // Asumiendo que la cantidad es el precio por simplicidad
+                }
+            }
+            return total;
+        }
     }
-    public class Venta
+    public class VentaCliente
     {
         public Carrito Carrito { get; set; }
         public bool EstaFinalizado { get; set; }
@@ -272,20 +340,53 @@
     public class SistemaContable
     {
     }
-
     public class Empleado// dueño?
     {
         //definición de propiedades comunes para todos los empleados
     }
-
     public class Repositor : Empleado
     {
-        public Validador Validador { get; set; }
-        public void Agregar(Inventario? Iventario, int cantidad) 
+        public ValidadorRepositor Validador { get; set; }
+        public bool AgregarProducto(Inventario iventario, int idProducto, int cantidad, int precio) 
         {
-            Console.WriteLine($"Agregando {cantidad}");
+            //if (!Validador.ValidarProducto())
+            //{
+            //    Console.WriteLine("Producto invalido.");
+            //    return false;
+            //}
+            //if (!Validador.ValidarCantidad())
+            //{
+            //    Console.WriteLine("Cantidad invalida.");
+            //    return false;
+            //}
+            //if (!Validador.ValidarPrecio())
+            //{
+            //    Console.WriteLine("Precio invalido.");
+            //    return false;
+            //}
+
+            iventario.AgregarProductoStockPrecio(idProducto, cantidad, precio);
+            return true;
         }
-        public void Quitar(Inventario? Iventario, int cantidad) { }
+        public bool QuitarProducto(Inventario iventario, int idProducto, int cantidad)
+        {    //if (!Validador.ValidarProducto())
+            //{
+            //    Console.WriteLine("Producto invalido.");
+            //    return false;
+            //}
+            //if (!Validador.ValidarCantidad())
+            //{
+            //    Console.WriteLine("Cantidad invalida.");
+            //    return false;
+            //}
+            //if (!Validador.ValidarPrecio())
+            //{
+            //    Console.WriteLine("Precio invalido.");
+            //    return false;
+            //}
+            iventario.QuitarProductoStock(idProducto, cantidad);
+            return true;
+        }
     }
     public class Vendedor : Empleado
     {
@@ -303,10 +404,76 @@
     }
     public abstract class Validador
     {
-        public bool ValidarAlgo()
+        public abstract bool Validar();
+    }
+    public class ValidadorRepositor 
+    {
+        //private Producto Producto { get; set; }
+        //private Inventario Inventario { get; set; }
+
+        //public ValidadorRepositor(Producto producto, Inventario inventario)
+        //{
+        //    Producto = producto;
+        //    Inventario = inventario;
+        //}
+
+        //métodos de validación específicos para agregar o quitar productos
+        public bool ValidarProducto()
         {
-            // Implementación de validación
+            // Lógica para validar el producto
+            return true;
+        }
+        public bool ValidarCantidad()
+        {
+            // Lógica para validar la cantidad
+            return true; 
+        }
+        public bool ValidarPrecio()
+        {
+            // Lógica para validar el precio
             return true;
         }
     }
+
+    public abstract class Descuento
+    {
+        public abstract double CalcularDescuento(double precio, int cantidad);
+    }
+    #region Diseño clases opcional
+    public abstract class Dueño
+    {
+        public abstract void AgregarStock();
+        public abstract void QuitarStock();
+    }
+    public class Repositor2 : Dueño
+    {
+        public override void AgregarStock()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void QuitarStock()
+        {
+            throw new NotImplementedException();
+        }
+    }
+    public class VendedorS : Repositor2
+    {
+        public void Vender()
+        {
+        }
+        public void Cotizar()
+        {
+        }
+    }
+    public class CajeroS : VendedorS
+    {
+        public void CobrarAlCliente()
+        {
+        }
+        public void CierreDelDia()
+        {
+        }
+    }
+    #endregion
 }
