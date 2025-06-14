@@ -46,7 +46,7 @@
                         break;
                     case 3:
                         Console.Clear();
-                        MenuCajero(cajero, inventario, carritos, ref funcionando);
+                        MenuCajero(cajero, inventario, carritos, ref funcionando, datosVenta);
                         break;
                 }
 
@@ -134,7 +134,7 @@
                 }
             } while (funcionandovender);
         }
-        static void MenuCajero(Cajero cajero, Inventario inventario, Carrito[] carritos, ref bool funcionandoPrincipal)
+        static void MenuCajero(Cajero cajero, Inventario inventario, Carrito[] carritos, ref bool funcionandoPrincipal, DatosVenta datosVenta)
         {
             bool funcionandocajero = true;
 
@@ -152,12 +152,12 @@
                 {
                     case 1:
                         Console.WriteLine("Vamos a cobrar los carritos segun el orden de llegada. Empezamos con el primero que este sin cobrar.");
-                        cajero.Cobrar(carritos, inventario); 
+                        cajero.Cobrar(carritos, inventario, datosVenta); 
                         Console.ReadKey();
                         break;
                     case 2:
                         Console.WriteLine("Llamar a método para cerrar caja / ver resumen");
-                        cajero.CierreDelDia(carritos,ref funcionandoPrincipal); // Ejemplo de uso del método Cierre
+                        cajero.CierreDelDia(carritos,ref funcionandoPrincipal, datosVenta); 
                         Console.ReadKey();
                         break;
                     case 3:
@@ -286,11 +286,6 @@
         }
     }
 
-    public class ResumenVentas
-    {
-        public int[]? Ventas { get; set; }
-        public void PedirResumen() { }
-    }
     public struct DatosVenta
     {
         public int TotalSinDescuentos { get; set; }
@@ -303,14 +298,15 @@
 
 
     }
-    public class Empleado// dueño?
+    public abstract class Dueño
     {
-        //definición de propiedades comunes para todos los empleados
+        public abstract void AgregarProducto(Inventario iventario, int idProducto, int cantidad, int precio);
+        public abstract void QuitarProducto(Inventario iventario, int idProducto, int cantidad);
     }
-    public class Repositor : Empleado
+    public class Repositor : Dueño
     {
         public ValidadorRepositor Validador { get; set; }
-        public bool AgregarProducto(Inventario iventario, int idProducto, int cantidad, int precio) 
+        public override void AgregarProducto(Inventario iventario, int idProducto, int cantidad, int precio) 
         {
             //if (!Validador.ValidarProducto())
             //{
@@ -331,7 +327,7 @@
             iventario.AgregarProductoStockPrecio(idProducto, cantidad, precio);
             return true;
         }
-        public bool QuitarProducto(Inventario iventario, int idProducto, int cantidad)
+        public override void QuitarProducto(Inventario iventario, int idProducto, int cantidad)
         {    //if (!Validador.ValidarProducto())
             //{
             //    Console.WriteLine("Producto invalido.");
@@ -351,7 +347,7 @@
             return true;
         }
     }
-    public class Vendedor : Empleado
+    public class Vendedor : Repositor
     {
         public Validador Validador { get; set; }
         public void Vender(int productoId, Carrito[] ventaClientes, Inventario? Iventario)
@@ -363,32 +359,36 @@
             //buscas en tu inventario el producto con el productoId y agregas precio. Consultar antes si tiene precio no modificar nada.
         }
     }
-    public class Cajero : Empleado
+    public class Cajero : Vendedor
     {
         public Validador Validador { get; set; }
-        public void Cobrar(Carrito[] carrito, Inventario inventario)
+        public void Cobrar(Carrito[] carrito, Inventario inventario, DatosVenta datosVenta)
         {
-
+            int totalConDescuento = 1000;
             //dame el ultimo carrito para que tengas sin cobrar.
             Carrito changuito = null;
-            int total = 0;
-            int totalCantidad = 0;
+            int totalSinDescuento = 0;
+            int totalCantidadProductos = 0;
             int totalDistintos = 0;
+
             for (int i = 0; i < carrito.Length; i++)
             {
                 if (carrito[i].EstaCobrado == false)
                 {
                     changuito = carrito[i];
                     //le pregunto a carrito: dame el total
-                    total = changuito.TotalCarrito(inventario);
-                    totalCantidad = changuito.CantidadProductos();
+                    totalSinDescuento = changuito.TotalCarrito(inventario);
+                    totalCantidadProductos = changuito.CantidadProductos();
                     totalDistintos = changuito.CantidadProductosDistintos();
+                    //guardo datos 
+                    datosVenta.TotalSinDescuentos = datosVenta.TotalSinDescuentos + totalSinDescuento;
+
                     break;
                 }
             }
 
             //cobro este carrito con los descuentos
-             //segun los campos etc. ejemplo:
+            //segun los campos etc. ejemplo:
             // 1. Ajustes por monto
             //if (subtotal < 5000) montoFinal *= 1.15;
             //else if (subtotal < 10000) montoFinal *= 1.12;
@@ -411,12 +411,27 @@
             //else if (totalProductosDistintos >= 7) montoFinal *= 0.90;
             //else if (totalProductosDistintos >= 6) montoFinal *= 0.95;
 
+            //total con descuento
+            datosVenta.TotalCobrado = datosVenta.TotalCobrado + totalConDescuento;
+            datosVenta.CantidadVentas = datosVenta.CantidadVentas + 1;
+            datosVenta.CantidadUnidades = datosVenta.CantidadUnidades + totalCantidadProductos;
+         
+
 
             //luego le doy mensaje q cobre
             //dejar mensaje que le cobre X, que incluyo determinados descuentos
         }
-        public void CierreDelDia(Carrito[] carritos, ref bool funcionandoPrincipal)
+        public void CierreDelDia(Carrito[] carritos, ref bool funcionandoPrincipal, DatosVenta datosVenta)
         {
+            for (int i = 0; i < carritos.Length; i++)
+            {
+                if (carritos[i].EstaCobrado == false)
+                {
+                    //no cierro el dia porque hay un carrito sin cobrar.
+                    //dejar mensaje, "te quedaron carritos sin cobrar"
+                    return;
+                }
+            }
             // Total vendido en pesos sin descuentos / aumentos.
             //○ Total de lo cobrado. 
             //○ Cantidad de ventas realizadas. 
@@ -424,8 +439,12 @@
             //○ Promedio de Unidades por Ventas y Cobrado por ventas.
             //○ Diferencia porcentual entre lo cobrado y lo vendido sin descuento/ aumento.
             //=> (1 - (sumatoria de ventas con descuento / sumatoria de ventas sin descuento)) * 100
+            datosVenta.TicketPromedio = datosVenta.TotalCobrado/datosVenta.CantidadVentas;
+            datosVenta.DiferenciaPorcentualConDescuento = (1 - (datosVenta.TotalCobrado / datosVenta.TotalSinDescuentos)) * 100;
+            //imprimir todos los datos de datos venta.
 
-
+            //cerrar el menu
+            funcionandoPrincipal = false;
         }
     }
     public abstract class Validador
@@ -461,45 +480,9 @@
         }
     }
 
-    public abstract class Descuento
+    public static class Descuento
     {
-        public abstract double CalcularDescuento(double precio, int cantidad);
+       //descuentos
     }
-    #region Diseño clases opcional
-    public abstract class Dueño
-    {
-        public abstract void AgregarStock();
-        public abstract void QuitarStock();
-    }
-    public class Repositor2 : Dueño
-    {
-        public override void AgregarStock()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void QuitarStock()
-        {
-            throw new NotImplementedException();
-        }
-    }
-    public class VendedorS : Repositor2
-    {
-        public void Vender()
-        {
-        }
-        public void Cotizar()
-        {
-        }
-    }
-    public class CajeroS : VendedorS
-    {
-        public void CobrarAlCliente()
-        {
-        }
-        public void CierreDelDia()
-        {
-        }
-    }
-    #endregion
+  
 }
