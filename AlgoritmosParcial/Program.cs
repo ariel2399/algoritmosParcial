@@ -204,7 +204,7 @@
             MaxProductos = maxProductos;
             registros = new RegistroInventario[maxProductos];
         }
-        public void AgregarProductoStockPrecio(int idProducto, int cantidad)//para el repositor solo stock
+        public void AgregarProductoStock(int idProducto, int cantidad)//para el repositor solo stock
         {
             var nuevoRegistro = new RegistroInventario
             {
@@ -259,7 +259,12 @@
         private int ProductosDistintos { get; set; }//11
         private int[,] Compartimentos { get; set; }
         public bool EstaCobrado { get; set; } //checkear si hacerlo en metodo mejor.
-    
+
+        public Carrito()
+        {
+            Compartimentos = new int[MaxProductos, 2]; // [idProducto, cantidad]
+        }
+
         public bool Agregar(int productoId, int cantidad)
         {
             bool resp = false;
@@ -303,15 +308,15 @@
         }
     }
 
-    public struct DatosVenta
+    public class DatosVenta
     {
         public int TotalSinDescuentos { get; set; }
-        public int TotalCobrado { get; set; }
+        public double TotalCobrado { get; set; }
         public int CantidadVentas { get; set; }
         public int CantidadUnidades { get; set; }
         public decimal PromedioUnidadesVendidas { get; set; }
-        public decimal TicketPromedio { get; set; }
-        public int DiferenciaPorcentualConDescuento { get; set; }
+        public double TicketPromedio { get; set; }
+        public double DiferenciaPorcentualConDescuento { get; set; }
 
 
     }
@@ -341,7 +346,7 @@
             //    return false;
             //}
 
-            iventario.AgregarProductoStockPrecio(idProducto, cantidad);
+            iventario.AgregarProductoStock(idProducto, cantidad);
             return ;
         }
         public override void QuitarProducto(Inventario iventario, int idProducto, int cantidad)
@@ -377,7 +382,7 @@
                 if (carritos[i] == null) //hay lugar
                 {
                     carritos[i] = changuito;
-                    return;
+                    break;
                 }
             }
 
@@ -392,9 +397,9 @@
         public Validador Validador { get; set; }
         public void Cobrar(Carrito[] carrito, Inventario inventario, DatosVenta datosVenta)
         {
-            int totalConDescuento = 1000;
+            double totalConDescuento = 0;
             //dame el ultimo carrito para que tengas sin cobrar.
-            Carrito changuito = null;
+            Carrito? changuito = null;
             //datos importantes para los ifs de descuentos
             int totalSinDescuento = 0;
 
@@ -404,7 +409,7 @@
 
             for (int i = 0; i < carrito.Length; i++)
             {
-                if (carrito[i].EstaCobrado == false)
+                if (carrito[i] != null && carrito[i].EstaCobrado == false)
                 {
                     changuito = carrito[i];
                     //le pregunto a carrito: dame el total
@@ -420,27 +425,81 @@
 
             //cobro este carrito con los descuentos
             //segun los campos etc. ejemplo:
-            // 1. Ajustes por monto
-            //if (subtotal < 5000) totalConDescuento *= 1.15;
-            //else if (totalSinDescuento < 10000) totalConDescuento *= 1.12;
-            //else if (totalSinDescuento < 15000) totalConDescuento *= 1.09;
-            //else if (totalSinDescuento >= 35000) totalConDescuento *= 0.85;
-            //else if (totalSinDescuento >= 25000) totalConDescuento *= 0.89;
-            //else if (totalSinDescuento >= 15000) totalConDescuento *= 0.925;
+            if (totalSinDescuento < 5000)
+            {
+                totalConDescuento = totalSinDescuento * 1.15;
+            }
+            else if (totalSinDescuento < 10000)
+            {
+                totalConDescuento = totalSinDescuento * 1.12;
+            }
+            else if (totalSinDescuento < 15000)
+            {
+                totalConDescuento = totalSinDescuento * 1.09;
+            }
+            else if (totalSinDescuento >= 35000)
+            {
+                totalConDescuento = totalSinDescuento * 0.85;
+            }
+            else if (totalSinDescuento >= 25000)
+            {
+                totalConDescuento = totalSinDescuento * 0.89;
+            }
+            else if (totalSinDescuento >= 15000)
+            {
+                totalConDescuento = totalSinDescuento * 0.925;
+            }
+
             //// 2. Ajustes por unidades
-            //if (totalCantidadProductos < 5) totalConDescuento *= 1.10;
-            //else if (totalCantidadProductos < 10) totalConDescuento *= 1.075;
-            //else if (totalCantidadProductos < 15) totalConDescuento *= 1.05;
-            //else if (totalCantidadProductos >= 25) totalConDescuento *= 0.95;
-            //else if (totalCantidadProductos >= 20) totalConDescuento *= 0.964;
-            //else if (totalCantidadProductos >= 15) totalConDescuento *= 0.976;
+            if (totalCantidadProductos < 5)
+            {
+                totalConDescuento = totalConDescuento * 1.10;
+            }
+            else if (totalCantidadProductos < 10)
+            {
+                totalConDescuento = totalConDescuento * 1.075;
+            }
+            else if (totalCantidadProductos < 15)
+            {
+                totalConDescuento = totalConDescuento * 1.05;
+            }
+            else if (totalCantidadProductos >= 25)
+            {
+                totalConDescuento = totalConDescuento * 0.95;
+            }
+            else if (totalCantidadProductos >= 20)
+            {
+                totalConDescuento = totalConDescuento * 0.964;
+            }
+            else if (totalCantidadProductos >= 15)
+            {
+                totalConDescuento = totalConDescuento * 0.976;
+            }
             //// 3. Ajustes por cantidad de productos distintos
-            //if (totalDistintos < 2) totalConDescuento *= 1.15;
-            //else if (totalDistintos < 4) totalConDescuento *= 1.10;
-            //else if (totalDistintos < 6) totalConDescuento *= 1.05;
-            //else if (totalDistintos >= 8) totalConDescuento *= 0.85;
-            //else if (totalDistintos >= 7) totalConDescuento *= 0.90;
-            //else if (totalDistintos >= 6) totalConDescuento *= 0.95;
+            if (totalDistintos < 2)
+            {
+                totalConDescuento = totalConDescuento * 1.15;
+            }
+            else if (totalDistintos < 4)
+            {
+                totalConDescuento = totalConDescuento * 1.10;
+            }
+            else if (totalDistintos < 6)
+            {
+                totalConDescuento = totalConDescuento * 1.05;
+            }
+            else if (totalDistintos >= 8)
+            {
+                totalConDescuento = totalConDescuento * 0.85;
+            }
+            else if (totalDistintos >= 7)
+            {
+                totalConDescuento = totalConDescuento * 0.90;
+            }
+            else if (totalDistintos >= 6)
+            {
+                totalConDescuento = totalConDescuento * 0.95;
+            }
 
             //total con descuento
             datosVenta.TotalCobrado = datosVenta.TotalCobrado + totalConDescuento;
@@ -456,7 +515,7 @@
         {
             for (int i = 0; i < carritos.Length; i++)
             {
-                if (carritos[i].EstaCobrado == false)
+                if (carritos[i] != null && carritos[i].EstaCobrado == false)
                 {
                     //no cierro el dia porque hay un carrito sin cobrar.
                     //dejar mensaje, "te quedaron carritos sin cobrar"
